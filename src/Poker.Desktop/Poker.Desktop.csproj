@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <OutputType>WinExe</OutputType>
+        <TargetFramework>net9.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <PublishAot>true</PublishAot>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <ApplicationManifest>app.manifest</ApplicationManifest>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Avalonia.Desktop" Version="$(AvaloniaVersion)" />
+        <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
+        <!--    <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Nlnet.Avalonia.DevTools" Version="1.0.1-beta.13" />-->
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\Poker\Poker.csproj" />
+    </ItemGroup>
+</Project>
