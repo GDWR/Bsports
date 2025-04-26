@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using Avalonia;
-using Poker;
+using Poker.UI;
 
 namespace Poker.Desktop;
 
