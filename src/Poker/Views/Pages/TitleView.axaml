@@ -52,6 +52,10 @@
                                 Content="Spider"
                                 Command="{Binding  NavigateToSpiderCommand}" />
 
+                        <Button DockPanel.Dock="Top" VerticalAlignment="Center" Width="230"
+                                Content="Poker"
+                                Command="{Binding  NavigateToPokerCommand}" />
+
                         <Border Height="2" Margin="10 5 10 5">
                             <Border.Background>
                                 <LinearGradientBrush StartPoint="-1000,1000" EndPoint="1000,0"

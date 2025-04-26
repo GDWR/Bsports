@@ -18,6 +18,8 @@ public partial class TitleViewModel : ViewModelBase
     
     public ICommand? NavigateToFreeCellCommand { get; }
     
+    public ICommand? NavigateToPokerCommand { get; }
+
     public ICommand? NavigateToStatisticsCommand { get; }
 
     public ICommand? NavigateToSettingsCommand { get; }
@@ -54,6 +56,16 @@ public partial class TitleViewModel : ViewModelBase
             }, DispatcherPriority.Background);
          });
 
+        NavigateToPokerCommand = new RelayCommand(() =>
+        {
+            casinoViewModel.CurrentView = casinoViewModel.PokerInstance;
+            
+            Dispatcher.UIThread.Post(() =>
+            {
+                casinoViewModel.PokerInstance.NewGameCommand?.Execute(default);
+            }, DispatcherPriority.Background);
+        });
+        
         NavigateToSettingsCommand = new RelayCommand(() =>
         {
             casinoViewModel.CurrentView = casinoViewModel.SettingsInstance;
@@ -63,6 +75,5 @@ public partial class TitleViewModel : ViewModelBase
         {
             casinoViewModel.CurrentView = casinoViewModel.StatisticsInstance;
         });
-        
     }
 }

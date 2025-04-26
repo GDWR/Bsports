@@ -52,7 +52,7 @@ public partial class PlayingCardViewModel : ViewModelBase
         //  The first two suits in the CardType enum are red, the last two are black.
         (int)CardType < 26 ? CardColour.Red : CardColour.Black;
 
-    [ObservableProperty]  private CardType _cardType  = CardType.SA;
+    [ObservableProperty] private CardType _cardType;
     [ObservableProperty] private bool _isFaceDown;
     [ObservableProperty] private bool _isPlayable;
     [ObservableProperty] private double _faceDownOffset;

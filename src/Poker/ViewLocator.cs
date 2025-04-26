@@ -19,6 +19,7 @@ public class ViewLocator : IDataTemplate
             KlondikeSolitaireViewModel => new KlondikeSolitaireView(),
             FreeCellSolitaireViewModel => new FreeCellSolitaireView(),
             SpiderSolitaireViewModel => new SpiderSolitaireView(),
+            PokerViewModel => new PokerView(),
             GameStatisticsViewModel => new GameStatisticsView(),
             SettingsViewModel => new SettingsView(),
             StatisticsViewModel => new StatisticsView(),

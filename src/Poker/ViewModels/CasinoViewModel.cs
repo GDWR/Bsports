@@ -26,6 +26,7 @@ public partial class CasinoViewModel : ViewModelBase
         KlondikeInstance = new KlondikeSolitaireViewModel(this);
         SpiderInstance = new SpiderSolitaireViewModel(this);
         FreeCellInstance = new FreeCellSolitaireViewModel(this);
+        PokerInstance = new PokerViewModel(this);
         TitleInstance = new TitleViewModel(this);
         StatisticsInstance = new StatisticsViewModel(this);
         CurrentView = TitleInstance;
@@ -43,6 +44,7 @@ public partial class CasinoViewModel : ViewModelBase
     public SpiderSolitaireViewModel SpiderInstance { get; }
     public FreeCellSolitaireViewModel FreeCellInstance { get; }
     public KlondikeSolitaireViewModel KlondikeInstance { get; }
+    public PokerViewModel PokerInstance { get; }
 
     public ICommand NavigateToTitleCommand { get; }
 
