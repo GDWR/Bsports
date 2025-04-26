@@ -1,6 +1,6 @@
 namespace Poker;
 
-// TODO: Deduplicate this enum with PlayingCardViewModel
+// TODO: Deduplicate this with PlayingCardViewModel
 public record Card(CardType cardType)
 {
     /// <summary>
