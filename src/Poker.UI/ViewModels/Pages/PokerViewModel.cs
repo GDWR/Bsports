@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
@@ -28,7 +29,11 @@ public partial class PokerViewModel : CardGameViewModel
     [ObservableProperty] private List<PlayingCardViewModel>? _playingCards;
     
     private List<Seat> _seats = new();
-    
+
+    private const float Speed = 1.0f;
+    private readonly TimeSpan ShortPause = TimeSpan.FromMilliseconds(75 / Speed);
+    private readonly TimeSpan LongPause = TimeSpan.FromMilliseconds(175 / Speed);
+
 
     public PokerViewModel(CasinoViewModel casinoViewModel) : base(casinoViewModel)
     {
@@ -112,7 +117,7 @@ public partial class PokerViewModel : CardGameViewModel
                 var card = playingCards.First();
                 card.IsFaceDown = false;
                 hand.Add(card);
-                await Task.Delay(175);
+                await Task.Delay(LongPause);
 
                 playingCards.Remove(card);
             }
@@ -135,7 +140,8 @@ public partial class PokerViewModel : CardGameViewModel
         {
             var nextCard = playingCards.First();
             _cells[i].Add(nextCard);
-            await Task.Delay(175);
+            await Task.Delay(LongPause);
+
 
             playingCards.Remove(nextCard);
         }
@@ -143,7 +149,7 @@ public partial class PokerViewModel : CardGameViewModel
         
         for (var i = 0; i < 3; i++)
         {
-            await Task.Delay(175);
+            await Task.Delay(ShortPause);
             _cells[i].First().IsFaceDown = false;
         }
         
