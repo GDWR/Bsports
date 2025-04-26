@@ -6,7 +6,6 @@ using System.Windows.Input;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Poker.Lib;
 using Poker.UI.Utils;
 using Poker.UI.ViewModels.Pages;
 

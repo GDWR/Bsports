@@ -1,4 +1,4 @@
-namespace Poker.Lib;
+namespace Poker;
 
 // TODO: Deduplicate this enum with PlayingCardViewModel
 public record Card(CardType cardType)

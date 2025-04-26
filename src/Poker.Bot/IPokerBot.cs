@@ -1,6 +1,4 @@
-﻿using Poker.Lib;
-
-namespace Poker.Bot;
+﻿namespace Poker.Bot;
 
 public record BotAction;
 

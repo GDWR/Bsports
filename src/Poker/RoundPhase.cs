@@ -1,4 +1,4 @@
-namespace Poker.Lib;
+namespace Poker;
 
 public enum RoundPhase
 {

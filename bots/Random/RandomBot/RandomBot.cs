@@ -1,5 +1,5 @@
-﻿using Poker.Bot;
-using Poker.Lib;
+﻿using Poker;
+using Poker.Bot;
 
 namespace RandomBot;
 

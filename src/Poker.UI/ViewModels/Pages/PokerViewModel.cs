@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Poker.Bot;
-using Poker.Lib;
 using Poker.UI.Models;
 using Poker.UI.Utils;
 

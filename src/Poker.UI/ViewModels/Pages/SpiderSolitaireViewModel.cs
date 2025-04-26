@@ -7,7 +7,6 @@ using System.Windows.Input;
 using Avalonia.Reactive;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Poker.Lib;
 using Poker.UI.Models;
 using Poker.UI.Utils;
 

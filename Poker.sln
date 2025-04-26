@@ -13,7 +13,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Bots", "Bots", "{BB1C093E-9
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RandomBot", "bots\Random\RandomBot\RandomBot.csproj", "{155E9041-75E6-46C1-81F5-D37879BC00C0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Poker.Lib", "src\Poker.Lib\Poker.Lib.csproj", "{98955AD4-F721-4A55-B80E-A09418C36DD7}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Poker", "src\Poker\Poker.csproj", "{98955AD4-F721-4A55-B80E-A09418C36DD7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

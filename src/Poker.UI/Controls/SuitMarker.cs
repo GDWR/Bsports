@@ -1,6 +1,5 @@
 using Avalonia;
 using Avalonia.Controls.Primitives;
-using Poker.Lib;
 
 namespace Poker.UI.Controls;
 
