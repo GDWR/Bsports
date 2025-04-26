@@ -1,4 +1,4 @@
-﻿namespace Poker.Models;
+﻿namespace Poker.Lib;
 
 /// <summary>
 /// Represents a card colour.

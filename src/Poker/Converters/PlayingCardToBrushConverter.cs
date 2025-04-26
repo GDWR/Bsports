@@ -5,7 +5,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Data.Converters;
 using Avalonia.Media;
-using Poker.Models;
+using Poker.Lib;
 
 namespace Poker.Converters;
 
@@ -53,16 +53,16 @@ public class PlayingCardToBrushConverter : IValueConverter
 
         var cardName = cardType.ToString();
 
-        if (Brushes.TryGetValue( cardName, out var retDrawingImage))
+        if (Brushes.TryGetValue(cardName, out var retDrawingImage))
         {
             return retDrawingImage;
         }
- 
+
         if (!Application.Current!.TryFindResource(cardName, out var test) ||
             test is not DrawingImage faceImage) return null;
 
         Brushes.Add(cardName, faceImage);
-        
+
         return faceImage;
     }
 

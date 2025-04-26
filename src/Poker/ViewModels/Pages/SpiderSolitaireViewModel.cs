@@ -4,11 +4,12 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using Avalonia.Reactive;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Poker.Lib;
 using Poker.Models;
 using Poker.Utils;
-using Avalonia.Reactive;
 
 namespace Poker.ViewModels.Pages;
 

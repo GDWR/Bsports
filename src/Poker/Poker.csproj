@@ -15,4 +15,10 @@
     <ItemGroup>
       <UpToDateCheckInput Remove="Assets\Backgrounds\Background.jpg" />
     </ItemGroup>
+    
+    <!-- Bots, we could try a plugin approach https://learn.microsoft.com/en-us/dotnet/core/tutorials/creating-app-with-plugin-support -->
+    <ItemGroup>
+      <ProjectReference Include="..\..\bots\Random\RandomBot\RandomBot.csproj" />
+      <ProjectReference Include="..\Poker.Lib\Poker.Lib.csproj" />
+    </ItemGroup>
 </Project>

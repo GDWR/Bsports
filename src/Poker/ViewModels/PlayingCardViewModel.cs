@@ -1,4 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
+using Poker.Lib;
 using Poker.Models;
 
 namespace Poker.ViewModels;

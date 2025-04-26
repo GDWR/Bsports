@@ -1,5 +1,5 @@
 ﻿// ReSharper disable InconsistentNaming
-namespace Poker.Models;
+namespace Poker.Lib;
 
 /// <summary>
 /// The Card Types.

@@ -1,15 +1,21 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
-using Avalonia.Reactive;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Poker.Bot;
+using Poker.Lib;
 using Poker.Models;
 using Poker.Utils;
 
 namespace Poker.ViewModels.Pages;
+
+record Seat
+{
+    public required IPokerBot Logic { get; init; }
+    public required BatchObservableCollection<PlayingCardViewModel> Hand { get; init; }
+};
 
 /// <summary>
 /// The Poker View Model.
@@ -21,17 +27,14 @@ public partial class PokerViewModel : CardGameViewModel
 
     [ObservableProperty] private DrawMode _drawMode;
     [ObservableProperty] private List<PlayingCardViewModel>? _playingCards;
+    
+    private List<Seat> _seats = new();
+    
 
     public PokerViewModel(CasinoViewModel casinoViewModel) : base(casinoViewModel)
     {
         InitializeFoundationsAndTableauSet();
-
-        // AutoMoveCommand = new AsyncRelayCommand(TryMoveAllCardsToAppropriateFoundations);
-
         NewGameCommand = new AsyncRelayCommand(DoDealNewGame);
-
-        casinoViewModel.SettingsInstance.WhenAnyValue(x => x.DrawMode)
-            .Subscribe(new AnonymousObserver<DrawMode>(x => DrawMode = x));
     }
 
     private void InitializeFoundationsAndTableauSet()
@@ -44,10 +47,35 @@ public partial class PokerViewModel : CardGameViewModel
         _cells.Add(Cell5);
         
         _hands.Add(Hand1);
+        _seats.Add(new Seat
+        {
+            Hand = Hand1,
+            Logic = BotRegistration.RandomBot,
+        });
         _hands.Add(Hand2);
+        _seats.Add(new Seat
+        {
+            Hand = Hand2,
+            Logic = BotRegistration.RandomBot,
+        });
         _hands.Add(Hand3);
+        _seats.Add(new Seat
+        {
+            Hand = Hand3,
+            Logic = BotRegistration.RandomBot,
+        });
         _hands.Add(Hand4);
+        _seats.Add(new Seat
+        {
+            Hand = Hand4,
+            Logic = BotRegistration.RandomBot,
+        });
         _hands.Add(Hand5);
+        _seats.Add(new Seat
+        {
+            Hand = Hand5,
+            Logic = BotRegistration.RandomBot,
+        });
     }
 
     /// <summary>
@@ -83,12 +111,25 @@ public partial class PokerViewModel : CardGameViewModel
             foreach (var hand in _hands)
             {
                 var card = playingCards.First();
-                card.IsFaceDown = i == 0;
+                card.IsFaceDown = false;
                 hand.Add(card);
                 await Task.Delay(175);
 
                 playingCards.Remove(card);
             }
+        }
+        
+        // Pre flop
+        foreach (var seat in _seats)
+        {
+            var botAction = await seat.Logic.GetAction(new RoundState
+            {
+                Pot= 0,
+                 Phase = RoundPhase.PreFlop,
+                 Hand = (new Card(seat.Hand[0].CardType), new Card(seat.Hand[1].CardType)),
+                 CommunityCards = (null,null,null,null,null),
+            });
+            
         }
         
         for (var i = 0; i < 5; i++)
