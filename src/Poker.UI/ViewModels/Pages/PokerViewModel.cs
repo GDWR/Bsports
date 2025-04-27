@@ -1,517 +1,51 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
-using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Poker.Bot;
-using Poker.UI.Models;
 using Poker.UI.Utils;
 
 namespace Poker.UI.ViewModels.Pages;
 
-record Seat
+
+class PokerPlayer
 {
     public required IPokerBot Logic { get; init; }
-    public required BatchObservableCollection<PlayingCardViewModel> Hand { get; init; }
-};
+    public required int Balance { get; set; }
+    public int Contribution { get; set; } = 0;
+    
+    public required BatchObservableCollection<PlayingCardViewModel> HandCollection { get; init; }
+    public (Card, Card) Hand => (new Card(HandCollection[0].CardType), new Card(HandCollection[1].CardType));
+}
 
 /// <summary>
 /// The Poker View Model.
 /// </summary>
-public partial class PokerViewModel : CardGameViewModel
+public class PokerViewModel : CardGameViewModel
 {
-    /// <inheritdoc />
     public override string GameName => "Poker";
-
-    [ObservableProperty] private DrawMode _drawMode;
-    [ObservableProperty] private List<PlayingCardViewModel>? _playingCards;
     
-    private List<Seat> _seats = new();
+    #region Poker Game Configuration
+
+    private const int SmallBlind = 25;
+    private const int BigBlind = 50;
+    private const int StartingBalance = 500;
+
+    #endregion
+    
+    #region Game Speed
 
     private const float Speed = 1.0f;
     private readonly TimeSpan ShortPause = TimeSpan.FromMilliseconds(75 / Speed);
     private readonly TimeSpan LongPause = TimeSpan.FromMilliseconds(175 / Speed);
 
+    #endregion
 
-    public PokerViewModel(CasinoViewModel casinoViewModel) : base(casinoViewModel)
-    {
-        InitializeFoundationsAndTableauSet();
-        NewGameCommand = new AsyncRelayCommand(DoDealNewGame);
-    }
+    #region UI Elements/Collections
 
-    private void InitializeFoundationsAndTableauSet()
-    {
-        //  Create the quick access arrays.
-        _cells.Add(Cell1);
-        _cells.Add(Cell2);
-        _cells.Add(Cell3);
-        _cells.Add(Cell4);
-        _cells.Add(Cell5);
-        
-        _hands.Add(Hand1);
-        _seats.Add(new Seat
-        {
-            Hand = Hand1,
-            Logic = BotRegistration.RandomBot,
-        });
-        _hands.Add(Hand2);
-        _seats.Add(new Seat
-        {
-            Hand = Hand2,
-            Logic = BotRegistration.RandomBot,
-        });
-        _hands.Add(Hand3);
-        _seats.Add(new Seat
-        {
-            Hand = Hand3,
-            Logic = BotRegistration.RandomBot,
-        });
-        _hands.Add(Hand4);
-        _seats.Add(new Seat
-        {
-            Hand = Hand4,
-            Logic = BotRegistration.RandomBot,
-        });
-        _hands.Add(Hand5);
-        _seats.Add(new Seat
-        {
-            Hand = Hand5,
-            Logic = BotRegistration.RandomBot,
-        });
-    }
-
-    /// <summary>
-    /// Gets the card collection for the specified card.
-    /// </summary>
-    /// <param name="card">The card.</param>
-    /// <returns></returns>
-    public override IList<PlayingCardViewModel>? GetCardCollection(PlayingCardViewModel card)
-    {
-        if (Cell1.Contains(card)) return Cell1;
-        if (Cell2.Contains(card)) return Cell2;
-        if (Cell3.Contains(card)) return Cell3;
-        if (Cell4.Contains(card)) return Cell4;
-        if (Cell5.Contains(card)) return Cell5;
-
-        foreach (var foundation in _foundations.Where(foundation => foundation.Contains(card)))
-            return foundation;
-
-        return _tableauSet.FirstOrDefault(tableau => tableau.Contains(card));
-    }
-
-    /// <summary>
-    /// Deals a new game.
-    /// </summary>
-    private async Task DoDealNewGame()
-    {
-        ResetGame();
-        
-        var playingCards = GetNewShuffledDeck();
-
-        for (var i = 0; i < 2; i++)
-        {
-            foreach (var hand in _hands)
-            {
-                var card = playingCards.First();
-                card.IsFaceDown = false;
-                hand.Add(card);
-                await Task.Delay(LongPause);
-
-                playingCards.Remove(card);
-            }
-        }
-        
-        // Pre flop
-        foreach (var seat in _seats)
-        {
-            var botAction = await seat.Logic.GetAction(new RoundState
-            {
-                Pot= 0,
-                 Phase = RoundPhase.PreFlop,
-                 Hand = (new Card(seat.Hand[0].CardType), new Card(seat.Hand[1].CardType)),
-                 CommunityCards = (null,null,null,null,null),
-            });
-            
-        }
-        
-        for (var i = 0; i < 5; i++)
-        {
-            var nextCard = playingCards.First();
-            _cells[i].Add(nextCard);
-            await Task.Delay(LongPause);
-
-
-            playingCards.Remove(nextCard);
-        }
-        
-        
-        for (var i = 0; i < 3; i++)
-        {
-            await Task.Delay(ShortPause);
-            _cells[i].First().IsFaceDown = false;
-        }
-        
-        //  And we're done.
-        StartTimer();
-    }
-
-    public override void ResetGame()
-    {
-        //  Call the base, which stops the timer, clears
-        //  the score etc.
-        ResetInternalState();
-
-        //  Clear everything.
-        Deck.Clear();
-        
-        Cell1.Clear();
-        Cell2.Clear();
-        Cell3.Clear();
-        Cell4.Clear();
-        Cell5.Clear();
-
-        Hand1.Clear();
-        Hand2.Clear();
-        Hand3.Clear();
-        Hand4.Clear();
-        Hand5.Clear();
-
-        foreach (var tableau in _tableauSet)
-            tableau.Clear();
-        foreach (var foundation in _foundations)
-            foundation.Clear();
-    }
-
-    /// <summary>
-    /// Tries the move all cards to appropriate foundations.
-    /// </summary>
-    private async Task TryMoveAllCardsToAppropriateFoundations()
-    {
-        //  Go through the top card in each tableau - keeping
-        //  track of whether we moved one.
-        if (Cell1.Count > 0 && TryMoveCardToAppropriateFoundation(Cell1.Last()))
-        {
-            await Task.Delay(75);
-        }
-        
-        if (Cell2.Count > 0 && TryMoveCardToAppropriateFoundation(Cell2.Last()))
-        {
-            await Task.Delay(75);
-        }
-        
-        if (Cell3.Count > 0 && TryMoveCardToAppropriateFoundation(Cell3.Last()))
-        {
-            await Task.Delay(75);
-        }
-        
-        if (Cell4.Count > 0 && TryMoveCardToAppropriateFoundation(Cell4.Last()))
-        {
-            await Task.Delay(75);
-        }
-        
-        var keepTrying = true;
-        
-        while (keepTrying)
-        {
-            var movedACard = false;
-            
-            foreach (var tableau in _tableauSet)
-            {
-                if (tableau.Count > 0)
-                {
-                    if (TryMoveCardToAppropriateFoundation(tableau.Last()))
-                    {
-                        movedACard = true;
-                        await Task.Delay(75);
-                    }
-                }
-            }
-
-            //  We'll keep trying if we moved a card.
-            keepTrying = movedACard;
-        }
-    }
-
-    /// <summary>
-    /// Tries the move the card to its appropriate foundation.
-    /// </summary>
-    /// <param name="card">The card.</param>
-    /// <returns>True if card moved.</returns>
-    private bool TryMoveCardToAppropriateFoundation(PlayingCardViewModel card)
-    {
-        var tableauPlusCells = _tableauSet.Concat(_cells).ToList();
-
-        //  Is the card in a tableau?
-        var movable = false;
-        var i = 0;
-        for (; i < tableauPlusCells.Count && movable == false; i++)
-            movable = tableauPlusCells[i].Contains(card);
-
-        //  It's if its not in a tableau and it's not the top
-        //  of the waste, we cannot move it.
-        if (!movable)
-            return false;
-
-        //  Try and move to each foundation.
-        foreach (var foundation in _foundations)
-            if (CheckAndMoveCard(tableauPlusCells[i - 1], foundation, card))
-                return true;
-
-        //  We couldn't move the card.
-        return false;
-    }
-
-    private CardSuit GetSuitForFoundations(IList<PlayingCardViewModel> cell)
-    {
-        if (ReferenceEquals(cell, _foundations[0]))
-            return CardSuit.Hearts;
-
-        if (ReferenceEquals(cell, _foundations[1]))
-            return CardSuit.Clubs;
-
-        if (ReferenceEquals(cell, _foundations[2]))
-            return CardSuit.Diamonds;
-
-        if (ReferenceEquals(cell, _foundations[3]))
-            return CardSuit.Spades;
-
-        throw new InvalidConstraintException();
-    }
-
-    /// <summary>
-    /// Moves the card.
-    /// </summary>
-    /// <param name="from">The set we're moving from.</param>
-    /// <param name="to">The set we're moving to.</param>
-    /// <param name="card">The card we're moving.</param>
-    /// <param name="checkOnly">if set to <c>true</c> we only check if we CAN move, but don't actually move.</param>
-    /// <returns>True if a card was moved.</returns>
-    public override bool CheckAndMoveCard(IList<PlayingCardViewModel> from,
-        IList<PlayingCardViewModel> to,
-        PlayingCardViewModel card,
-        bool checkOnly = false)
-    {
-        //  The trivial case is where from and to are the same.
-        if (from.SequenceEqual(to))
-            return false;
-
-        var freeCells = _cells.Count(x => x.Count == 0);
-
-        //  Identify the run of cards we're moving.
-        var run = new List<PlayingCardViewModel>();
-        for (var i = from.IndexOf(card); i < from.Count; i++)
-            run.Add(from[i]);
-
-        if (run.Count > freeCells + 1)
-            return false;
-
-        if (run.Count > 1)
-        {
-            for (var i = 0; i < run.Count - 1; i++)
-            {
-                if (run[i].Value - 1 != run[i + 1].Value)
-                {
-                    return false;
-                }
-            }
-        }
-
-        //  This is the complicated operation.
-        int scoreModifier;
-
-        //  Are we moving from the cells?
-        if (_cells.Contains(from))
-        {
-            //  Are we moving to a foundation?
-            if (_foundations.Contains(to))
-            {
-                //  We can move to a foundation only if:
-                //  1. It is empty and we are an ace.
-                //  2. It is card SN and we are suit S and Number N+1
-                if (GetSuitForFoundations(to) == card.Suit && 
-                    ((to.Count == 0 && card.Value == 0) || (to.Count > 0 && to.Last().Value == card.Value - 1)))
-                {
-                    //  Move from waste to foundation.
-                    scoreModifier = 10;
-                }
-                else
-                    return false;
-            }
-            //  Are we moving to a tableau?
-            else if (_tableauSet.Contains(to))
-            {
-                //  We can move to a tableau only if:
-                //  1. It is empty and we are a king.
-                //  2. It is card CN and we are color !C and Number N-1
-                if (to.Count == 0 ||
-                    (to.Count > 0 && to.Last().Colour != card.Colour && to.Last().Value == card.Value + 1))
-                {
-                    scoreModifier = 0;
-                }
-                else
-                    return false;
-            }
-            else if (_cells.Contains(to))
-            {
-                if (to.Count > 0 || from.Count - from.IndexOf(card) > 1)
-                {
-                    return false;
-                }
-
-                scoreModifier = 0;
-            }
-            //  Any other move from the waste is wrong.
-            else
-                return false;
-        }
-        //  Are we moving from a tableau?
-        else if (_tableauSet.Contains(from))
-        {
-            //  Are we moving to a foundation?
-            if (_foundations.Contains(to))
-            {
-                //  We can move to a foundation only if:
-                //  1. It is empty and we are an ace.
-                //  2. It is card SN and we are suit S and Number N+1
-                if (GetSuitForFoundations(to) == card.Suit && 
-                    ((to.Count == 0 && card.Value == 0) || (to.Count > 0 && to.Last().Value == card.Value - 1)))
-                {
-                    //  Move from tableau to foundation.
-                    scoreModifier = 10;
-                }
-                else
-                    return false;
-            }
-            else if (_cells.Contains(to))
-            {
-                if (to.Count > 0 || from.Count - from.IndexOf(card) > 1)
-                {
-                    return false;
-                }
-
-                scoreModifier = 0;
-            }
-            //  Are we moving to another tableau?
-            else if (_tableauSet.Contains(to))
-            {
-                //  We can move to a tableau only if:
-                //  1. It is empty and we are a king.
-                //  2. It is card CN and we are color !C and Number N-1
-                if ((to.Count == 0) ||
-                    (to.Count > 0 && to.Last().Colour != card.Colour && to.Last().Value == card.Value + 1))
-                {
-                    //  Move from tableau to tableau.
-                    scoreModifier = 0;
-                }
-                else
-                    return false;
-            }
-            //  Any other move from a tableau is wrong.
-            else
-                return false;
-        }
-        else
-            return false;
-
-        //  If we were just checking, we're done.
-        if (checkOnly)
-            return true;
-
-        //  If we've got here we've passed all tests
-        //  and move the card and update the score.
-        MoveCard(from, to, card, scoreModifier);
-        Score += scoreModifier;
-        Moves++;
-
-        //  Check for victory.
-        CheckForVictory();
-
-        return true;
-    }
-
-    /// <summary>
-    /// Actually moves the card.
-    /// </summary>
-    private void MoveCard(IList<PlayingCardViewModel> from,
-        IList<PlayingCardViewModel> to,
-        PlayingCardViewModel card, int scoreModifier)
-    {
-        //  Identify the run of cards we're moving.
-        var run = new List<PlayingCardViewModel>();
-        for (var i = from.IndexOf(card); i < from.Count; i++)
-            run.Add(from[i]);
-
-        //  This function will move the card, as well as setting the 
-        //  playable properties of the cards revealed.
-        foreach (var runCard in run)
-            from.Remove(runCard);
-        foreach (var runCard in run)
-            to.Add(runCard);
-
-        RecordMoves(new MoveOperation(from, to, run, scoreModifier));
-
-        //  Are there any cards left in the from pile?
-        if (from.Count > 0)
-        {
-            //  Reveal the top card and make it playable.
-            var topCardViewModel = from.Last();
-
-            topCardViewModel.IsFaceDown = false;
-            topCardViewModel.IsPlayable = true;
-        }
-    }
-
-    /// <summary>
-    /// Checks for victory.
-    /// </summary>
-    private void CheckForVictory()
-    {
-        //  We've won if every foundation is full.
-        foreach (var foundation in _foundations)
-            if (foundation.Count < 13)
-                return;
-
-        //  We've won.
-        IsGameWon = true;
-
-        //  Stop the timer.
-        StopTimer();
-
-        //  Fire the won event.
-        FireGameWonEvent();
-    }
-
-    //  For ease of access we have arrays of the foundations and tableau set.
-    private readonly List<BatchObservableCollection<PlayingCardViewModel>> _cells = new();
-    private readonly List<BatchObservableCollection<PlayingCardViewModel>> _hands = new();
-    private readonly List<BatchObservableCollection<PlayingCardViewModel>> _foundations = new();
-    private readonly List<BatchObservableCollection<PlayingCardViewModel>> _tableauSet = new();
-
-    public BatchObservableCollection<PlayingCardViewModel> Foundation1 { get; } = new();
-
-    public BatchObservableCollection<PlayingCardViewModel> Foundation2 { get; } = new();
-
-    public BatchObservableCollection<PlayingCardViewModel> Foundation3 { get; } = new();
-
-    public BatchObservableCollection<PlayingCardViewModel> Foundation4 { get; } = new();
-
-    public BatchObservableCollection<PlayingCardViewModel> Tableau1 { get; } = new();
-
-    public BatchObservableCollection<PlayingCardViewModel> Tableau2 { get; } = new();
-
-    public BatchObservableCollection<PlayingCardViewModel> Tableau3 { get; } = new();
-
-    public BatchObservableCollection<PlayingCardViewModel> Tableau4 { get; } = new();
-
-    public BatchObservableCollection<PlayingCardViewModel> Tableau5 { get; } = new();
-
-    public BatchObservableCollection<PlayingCardViewModel> Tableau6 { get; } = new();
-
-    public BatchObservableCollection<PlayingCardViewModel> Tableau7 { get; } = new();
-
-    public BatchObservableCollection<PlayingCardViewModel> Tableau8 { get; } = new();
+    private readonly List<BatchObservableCollection<PlayingCardViewModel>> _cells = [];
+    private readonly List<BatchObservableCollection<PlayingCardViewModel>> _hands = [];
 
     public BatchObservableCollection<PlayingCardViewModel> Deck { get; } = new();
     public BatchObservableCollection<PlayingCardViewModel> Cell1 { get; } = new();
@@ -528,4 +62,177 @@ public partial class PokerViewModel : CardGameViewModel
     public BatchObservableCollection<PlayingCardViewModel> Hand4 { get; } = new();
     public BatchObservableCollection<PlayingCardViewModel> Hand5 { get; } = new();
 
+    #endregion
+    
+    private int _currentBet = 0;
+    private int _currentPot = 0;
+    private readonly List<PokerPlayer> _players = [];
+
+    
+    public PokerViewModel(CasinoViewModel casinoViewModel) : base(casinoViewModel)
+    {
+        #region Initialize UI Elements/Collections
+
+        _cells.Add(Cell1);
+        _cells.Add(Cell2);
+        _cells.Add(Cell3);
+        _cells.Add(Cell4);
+        _cells.Add(Cell5);
+        
+        _hands.Add(Hand1);
+        _hands.Add(Hand2);
+        _hands.Add(Hand3);
+        _hands.Add(Hand4);
+        _hands.Add(Hand5);
+
+        #endregion
+        
+        NewGameCommand = new AsyncRelayCommand(DoNewGame);
+    }
+    
+    private async Task DoNewGame()
+    {
+        ResetGame();
+        InitPlayers();
+
+        while (true)
+        {
+            await PlayGame();
+        }
+    }
+    
+    private void InitPlayers()
+    {
+        for (var i = 0; i < 5; i++)
+        {
+            var player = new PokerPlayer
+            {
+                Balance = StartingBalance,
+                Logic = BotRegistration.RandomBot,
+                HandCollection = _hands[i],
+            };
+            _players.Add(player);
+        }
+    }
+
+    private async Task PlayGame()
+    {
+        var playingCards = GetNewShuffledDeck();
+
+        // Deal to players, one card at a time
+        for (var i = 0; i < 2; i++)
+        {
+            foreach (var player in _players)
+            {
+                var card = playingCards.First();
+                card.IsFaceDown = false;
+                player.HandCollection.Add(card);
+                playingCards.Remove(card);
+                
+                await Task.Delay(LongPause);
+            }
+        }
+        
+        // First player pays the small blind
+        var firstPlayer = _players[0];
+        firstPlayer.Balance -= SmallBlind;
+        firstPlayer.Contribution += SmallBlind;
+        _currentPot += SmallBlind;
+        _currentBet = SmallBlind;
+        
+        // Second player pays the big blind
+        var secondPlayer = _players[1];
+        secondPlayer.Balance -= BigBlind;
+        secondPlayer.Contribution += BigBlind;
+        _currentPot += BigBlind;
+        _currentBet = BigBlind;
+        
+        // Play the pre-flop
+        foreach (var player in _players[2..])
+        {
+            Console.WriteLine("State:");
+            Console.WriteLine($"  Player: {player.Logic.Name}");
+            Console.WriteLine($"  Balance: {player.Balance}");
+            Console.WriteLine($"  Contribution: {player.Contribution}");
+            Console.WriteLine($"  Hand: {player.HandCollection[0].CardType}, {player.HandCollection[1].CardType}");
+            Console.WriteLine($"  Pot: {_currentPot}");
+            Console.WriteLine($"  Current Bet: {_currentBet}");
+            Console.WriteLine($"  Community Cards: {string.Join(", ", Cell1.Select(c => c.CardType))}");
+            Console.WriteLine($"  Players Folded: {string.Join(", ", _players.Select(p => p.HandCollection.Count == 0))}");
+            Console.WriteLine($"  Player Index: {_players.IndexOf(player)}");
+            Console.WriteLine();
+            var state = new RoundState
+            {
+                Phase = RoundPhase.PreFlop,
+                Pot = _currentPot,
+                PotContribution = player.Contribution,
+                Hand = player.Hand,
+                CommunityCards = (null, null, null, null, null),
+                PlayerIndex = _players.IndexOf(player),
+                PlayersFolded = _players.Select(p => p.HandCollection.Count == 0).ToList(),
+                CurrentBet = _currentBet,
+                Balance = player.Balance,
+            };
+            var action = await player.Logic.GetAction(state);
+            await HandleAction(player, action);
+            await Task.Delay(LongPause);
+            Console.WriteLine($"Player {player.Logic.Name} action: {action.Action}" +
+                              $"{(action.Amount.HasValue ? $" ({action.Amount})" : "")}");
+        }
+    }
+
+    private Task PlayRound()
+    {
+
+        return Task.CompletedTask;
+    }
+    
+    private async Task HandleAction(PokerPlayer player, BotAction action)
+    {
+        switch (action.Action)
+        {
+            case ActionType.Call:
+                if (action.Amount.HasValue)
+                {
+                    player.Balance -= action.Amount.Value;
+                    player.Contribution += action.Amount.Value;
+                    _currentPot += action.Amount.Value;
+                }
+                break;
+            case ActionType.Raise:
+                if (action.Amount.HasValue && action.Amount > _currentBet)
+                {
+                    player.Balance -= action.Amount.Value;
+                    player.Contribution += action.Amount.Value;
+                    _currentPot += action.Amount.Value;
+                    _currentBet = action.Amount.Value;
+                }
+                break;
+            case ActionType.Check:
+                break;
+            case ActionType.Fold:
+                foreach (var card in player.HandCollection)
+                {
+                    card.IsFaceDown = true;
+                    await Task.Delay(ShortPause);
+                }
+                
+                break;
+        }
+    }
+    
+    public override void ResetGame()
+    {
+        _currentBet = 0;
+        _currentPot = 0;
+        _players.Clear();
+        Deck.Clear();
+        foreach (var cards in _hands.Concat(_cells))
+            cards.Clear();
+    }
+
+    /// <summary> Unused and to be refactored. </summary>
+    public override bool CheckAndMoveCard(IList<PlayingCardViewModel> from, IList<PlayingCardViewModel> to, PlayingCardViewModel card, bool checkOnly = false) => false;
+    /// <summary> Unused and to be refactored. </summary>
+    public override IList<PlayingCardViewModel>? GetCardCollection(PlayingCardViewModel card) => null;
 }
