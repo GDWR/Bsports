@@ -1,0 +1,16 @@
+<Project>
+    <PropertyGroup>
+        <Version>0.0.1-draft</Version>
+        <TargetFramework>net9.0</TargetFramework>
+        <Authors>GDWR</Authors>
+        <PackageProjectUrl>https://github.com/gdwr/bsports</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/gdwr/bsports</RepositoryUrl>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <Copyright>Copyright 2025 GDWR</Copyright>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <None Include="$(MSBuildThisFileDirectory)/README.md" Pack="true" PackagePath="/" />
+    </ItemGroup>
+</Project>

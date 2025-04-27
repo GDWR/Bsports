@@ -1,0 +1,12 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+    
+    <ItemGroup>
+      <ProjectReference Include="../Bsports/Bsports.csproj" />
+      <ProjectReference Include="../Bsports.Poker/Bsports.Poker.csproj" />
+    </ItemGroup>
+</Project>

@@ -1,2 +1,9 @@
 ﻿<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Bsports.Cards/Bsports.Cards.csproj" Type="Classic C#" />
+    <Project Path="src/Bsports.Poker.Console/Bsports.Poker.Console.csproj" Type="Classic C#" />
+    <Project Path="src/Bsports.Poker/Bsports.Poker.csproj" Type="Classic C#" />
+    <Project Path="src/Bsports/Bsports.csproj" Type="Classic C#" />
+  </Folder>
+  <Project Path="templates/Bsports.Templates.csproj" Type="Classic C#" />
 </Solution>

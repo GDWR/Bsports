@@ -1,0 +1,12 @@
+{
+  "$schema": "http://json.schemastore.org/template",
+  "author": "GDWR",
+  "classifications": [ "Bsports" ],
+  "identity": "Bsports.Templates.PokerBot",
+  "name": "Bsports Poker Bot",  
+  "shortName": "bsports.pokerbot",
+  "tags": {
+    "language": "C#",
+    "type": "project"
+  }
+}
